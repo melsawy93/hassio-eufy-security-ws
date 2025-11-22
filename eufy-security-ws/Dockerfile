@@ -9,9 +9,21 @@ RUN \
     && apk add --no-cache \
     nodejs \
     npm \
-    jq \
-    && npm install --force \
-    "eufy-security-ws@${EUFY_SECURITY_WS_VERSION}"
+    jq
+
+# Create package.json with override to use GitHub fork
+RUN echo '{ \
+      "name": "eufy-security-ws-installer", \
+      "version": "1.0.0", \
+      "dependencies": { \
+        "eufy-security-ws": "'${EUFY_SECURITY_WS_VERSION}'" \
+      }, \
+      "overrides": { \
+        "eufy-security-client": "github:melsawy93/eufy-security-client#add-c30-support" \
+      } \
+    }' > package.json
+
+RUN npm install --force
 
 COPY run.sh /
 RUN chmod a+x /run.sh
