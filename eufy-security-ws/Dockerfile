@@ -12,19 +12,23 @@ RUN \
     jq \
     git
 
-# Create package.json with override to use GitHub fork
+# Create package.json first
 RUN echo '{ \
       "name": "eufy-security-ws-installer", \
       "version": "1.0.0", \
       "dependencies": { \
         "eufy-security-ws": "'${EUFY_SECURITY_WS_VERSION}'" \
-      }, \
-      "overrides": { \
-        "eufy-security-client": "github:melsawy93/eufy-security-client#add-c30-support" \
       } \
     }' > package.json
 
+# Install eufy-security-ws first (without the override)
 RUN npm install --force
+
+# Clone eufy-security-client from GitHub fork directly into node_modules to get full source
+RUN rm -rf node_modules/eufy-security-client && \
+    git clone --depth 1 --branch add-c30-support https://github.com/melsawy93/eufy-security-client.git node_modules/eufy-security-client && \
+    cd node_modules/eufy-security-client && \
+    rm -rf .git
 
 # Build eufy-security-client if it's installed from GitHub (it needs to be built)
 RUN if [ -d "node_modules/eufy-security-client" ]; then \
@@ -35,32 +39,58 @@ RUN if [ -d "node_modules/eufy-security-client" ]; then \
             ls -la | head -20 && \
             echo "Installing dev dependencies..." && \
             npm install --include=dev && \
-            echo "Checking for tsconfig files..." && \
-            if [ ! -f "tsconfig.build.json" ] && [ -f "tsconfig.json" ]; then \
-                echo "tsconfig.build.json excluded by .npmignore, creating it..." && \
-                echo '{ \
-                    "extends": "./tsconfig.json", \
-                    "compilerOptions": { \
-                        "allowJs": false, \
-                        "checkJs": false, \
-                        "noEmit": false, \
-                        "declaration": true, \
-                        "outDir": "./build" \
-                    }, \
-                    "include": ["src/**/*.ts"], \
-                    "exclude": ["src/**/*.test.ts"] \
-                }' > tsconfig.build.json && \
-                echo "Created tsconfig.build.json"; \
-            fi && \
-            if [ -f "tsconfig.build.json" ]; then \
-                echo "Using tsconfig.build.json" && \
+            echo "Checking for source files and tsconfig..." && \
+            if [ -d "src" ]; then \
+                echo "Source directory found, creating tsconfig files..." && \
+                if [ ! -f "tsconfig.json" ]; then \
+                    echo "Creating tsconfig.json..." && \
+                    echo '{ \
+                        "compileOnSave": true, \
+                        "compilerOptions": { \
+                            "noEmit": true, \
+                            "allowJs": true, \
+                            "checkJs": true, \
+                            "skipLibCheck": true, \
+                            "noEmitOnError": true, \
+                            "outDir": "./build/", \
+                            "removeComments": false, \
+                            "module": "Node16", \
+                            "moduleResolution": "Node16", \
+                            "resolveJsonModule": true, \
+                            "esModuleInterop": true, \
+                            "forceConsistentCasingInFileNames": true, \
+                            "jsx": "react", \
+                            "strict": true, \
+                            "target": "ES2022", \
+                            "lib": ["ES2023", "DOM"], \
+                            "sourceMap": true, \
+                            "inlineSourceMap": false \
+                        }, \
+                        "include": ["src/**/*.ts"], \
+                        "exclude": ["build/**", "node_modules/**"] \
+                    }' > tsconfig.json; \
+                fi && \
+                if [ ! -f "tsconfig.build.json" ]; then \
+                    echo "Creating tsconfig.build.json..." && \
+                    echo '{ \
+                        "extends": "./tsconfig.json", \
+                        "compilerOptions": { \
+                            "allowJs": false, \
+                            "checkJs": false, \
+                            "noEmit": false, \
+                            "declaration": true, \
+                            "outDir": "./build" \
+                        }, \
+                        "include": ["src/**/*.ts"], \
+                        "exclude": ["src/**/*.test.ts"] \
+                    }' > tsconfig.build.json; \
+                fi && \
+                echo "Building from source..." && \
                 npm run build; \
-            elif [ -f "tsconfig.json" ]; then \
-                echo "tsconfig.build.json not found, using tsconfig.json with build options..." && \
-                tsc -p tsconfig.json --outDir build --declaration && \
-                npm run copy-proto-build || echo "copy-proto-build skipped"; \
+            elif [ -f "build/index.js" ]; then \
+                echo "Pre-built package detected, build/index.js already exists"; \
             else \
-                echo "ERROR: No tsconfig files found!" && \
+                echo "ERROR: No source directory or build output found!" && \
                 ls -la && \
                 exit 1; \
             fi && \
