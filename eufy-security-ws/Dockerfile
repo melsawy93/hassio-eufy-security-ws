@@ -31,10 +31,40 @@ RUN if [ -d "node_modules/eufy-security-client" ]; then \
         echo "=== Building eufy-security-client from GitHub source ===" && \
         cd node_modules/eufy-security-client && \
         if [ -f "package.json" ]; then \
-            echo "Installing dev dependencies and building..." && \
+            echo "Checking available files..." && \
+            ls -la | head -20 && \
+            echo "Installing dev dependencies..." && \
             npm install --include=dev && \
-            npm run build && \
-            echo "Build completed successfully" || (echo "Build failed!" && exit 1); \
+            echo "Checking for tsconfig files..." && \
+            if [ ! -f "tsconfig.build.json" ] && [ -f "tsconfig.json" ]; then \
+                echo "tsconfig.build.json excluded by .npmignore, creating it..." && \
+                echo '{ \
+                    "extends": "./tsconfig.json", \
+                    "compilerOptions": { \
+                        "allowJs": false, \
+                        "checkJs": false, \
+                        "noEmit": false, \
+                        "declaration": true, \
+                        "outDir": "./build" \
+                    }, \
+                    "include": ["src/**/*.ts"], \
+                    "exclude": ["src/**/*.test.ts"] \
+                }' > tsconfig.build.json && \
+                echo "Created tsconfig.build.json"; \
+            fi && \
+            if [ -f "tsconfig.build.json" ]; then \
+                echo "Using tsconfig.build.json" && \
+                npm run build; \
+            elif [ -f "tsconfig.json" ]; then \
+                echo "tsconfig.build.json not found, using tsconfig.json with build options..." && \
+                tsc -p tsconfig.json --outDir build --declaration && \
+                npm run copy-proto-build || echo "copy-proto-build skipped"; \
+            else \
+                echo "ERROR: No tsconfig files found!" && \
+                ls -la && \
+                exit 1; \
+            fi && \
+            echo "Build completed successfully"; \
         else \
             echo "ERROR: package.json not found!" && exit 1; \
         fi && \
@@ -43,7 +73,10 @@ RUN if [ -d "node_modules/eufy-security-client" ]; then \
         if [ -f "node_modules/eufy-security-client/build/index.js" ]; then \
             echo "✓ Build output found at build/index.js"; \
         else \
-            echo "✗ ERROR: Build output not found!" && exit 1; \
+            echo "✗ ERROR: Build output not found!" && \
+            echo "Listing build directory:" && \
+            ls -la node_modules/eufy-security-client/build/ 2>/dev/null || echo "Build directory does not exist" && \
+            exit 1; \
         fi; \
     fi
 
