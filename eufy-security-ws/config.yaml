@@ -1,6 +1,6 @@
 name: Eufy Security WS (C30 Dev)
 description: Allows you to control Eufy security devices over websocket by connecting to the Eufy cloud servers and local/remote stations (Dev version with C30 support)
-version: 1.9.9
+version: 9.9.9
 slug: "eufy_security_ws_c30_dev"
 url: https://github.com/melsawy93/eufy-security-client/tree/add-c30-support
 init: false
@@ -42,4 +42,4 @@ schema:
   stations:
     - serial_number: str
       ip_address: match(^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$)
-image: bropat/hassio-eufy-security-ws-{arch}
+# image: bropat/hassio-eufy-security-ws-{arch}  # Removed - using local build instead
