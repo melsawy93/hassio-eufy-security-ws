@@ -107,19 +107,37 @@ check_version() {
 if bashio::config.has_value 'username' && bashio::config.has_value 'password'; then
     # Verify eufy-security-client source at runtime
     echo "=== Runtime Verification: Checking eufy-security-client source ==="
-    if [ -f "/usr/src/app/node_modules/eufy-security-client/package.json" ]; then
-        CLIENT_VERSION=$(cat /usr/src/app/node_modules/eufy-security-client/package.json | grep '"version"' | head -1 | sed 's/.*"version": *"\([^"]*\)".*/\1/')
-        CLIENT_REPO=$(cat /usr/src/app/node_modules/eufy-security-client/package.json | grep -E '"repository"|"_resolved"' | grep -o 'melsawy93' || echo "")
+    CLIENT_PATH="/usr/src/app/node_modules/eufy-security-client"
+    if [ -f "${CLIENT_PATH}/package.json" ]; then
+        CLIENT_VERSION=$(cat "${CLIENT_PATH}/package.json" | grep '"version"' | head -1 | sed 's/.*"version": *"\([^"]*\)".*/\1/')
+        CLIENT_REPO=$(cat "${CLIENT_PATH}/package.json" | grep -E '"repository"|"_resolved"' | grep -o 'melsawy93' || echo "")
+        CLIENT_RESOLVED=$(cat "${CLIENT_PATH}/package.json" | grep '"_resolved"' | head -1 || echo "")
+        
+        echo "  Package path: ${CLIENT_PATH}"
+        echo "  Version: $CLIENT_VERSION"
+        echo "  Resolved: $CLIENT_RESOLVED"
+        
         if [ -n "$CLIENT_REPO" ]; then
             echo "✓ VERIFIED: Using eufy-security-client from GitHub fork (melsawy93/add-c30-support)"
-            echo "  Version: $CLIENT_VERSION"
         else
             echo "⚠ WARNING: eufy-security-client may not be from expected GitHub fork"
-            echo "  Version: $CLIENT_VERSION"
-            echo "  Check package.json for repository info"
+            echo "  Showing package.json contents:"
+            cat "${CLIENT_PATH}/package.json" | head -20
+        fi
+        
+        # Check if main entry point exists
+        MAIN_FILE=$(cat "${CLIENT_PATH}/package.json" | grep '"main"' | head -1 | sed 's/.*"main": *"\([^"]*\)".*/\1/' || echo "index.js")
+        if [ -f "${CLIENT_PATH}/${MAIN_FILE}" ] || [ -f "${CLIENT_PATH}/dist/index.js" ] || [ -f "${CLIENT_PATH}/build/index.js" ]; then
+            echo "✓ Package files found"
+        else
+            echo "✗ ERROR: Package main file not found! Expected: ${CLIENT_PATH}/${MAIN_FILE}"
+            echo "  Listing package directory contents:"
+            ls -la "${CLIENT_PATH}" || echo "  Directory does not exist!"
         fi
     else
-        echo "✗ ERROR: Could not find eufy-security-client package.json"
+        echo "✗ ERROR: Could not find eufy-security-client package.json at ${CLIENT_PATH}"
+        echo "  Listing node_modules directory:"
+        ls -la /usr/src/app/node_modules/ | grep eufy || echo "  No eufy packages found"
     fi
     echo "================================================================"
     echo ""

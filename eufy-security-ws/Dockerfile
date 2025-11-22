@@ -26,6 +26,27 @@ RUN echo '{ \
 
 RUN npm install --force
 
+# Build eufy-security-client if it's installed from GitHub (it needs to be built)
+RUN if [ -d "node_modules/eufy-security-client" ]; then \
+        echo "=== Building eufy-security-client from GitHub source ===" && \
+        cd node_modules/eufy-security-client && \
+        if [ -f "package.json" ]; then \
+            echo "Installing dev dependencies and building..." && \
+            npm install --include=dev && \
+            npm run build && \
+            echo "Build completed successfully" || (echo "Build failed!" && exit 1); \
+        else \
+            echo "ERROR: package.json not found!" && exit 1; \
+        fi && \
+        cd /usr/src/app && \
+        echo "=== Verifying build output ===" && \
+        if [ -f "node_modules/eufy-security-client/build/index.js" ]; then \
+            echo "✓ Build output found at build/index.js"; \
+        else \
+            echo "✗ ERROR: Build output not found!" && exit 1; \
+        fi; \
+    fi
+
 # Verify that eufy-security-client is installed from GitHub fork
 RUN echo "=== Verifying eufy-security-client installation ===" && \
     cat package.json && \
@@ -34,6 +55,9 @@ RUN echo "=== Verifying eufy-security-client installation ===" && \
     if [ -f "node_modules/eufy-security-client/package.json" ]; then \
         echo "Package found! Checking source..." && \
         cat node_modules/eufy-security-client/package.json | grep -E '"name"|"version"|"repository"|"_resolved"' || true && \
+        echo "" && \
+        echo "=== Checking package structure ===" && \
+        ls -la node_modules/eufy-security-client/ | head -20 || true && \
         echo "" && \
         echo "=== Checking if it's from GitHub ===" && \
         (cat node_modules/eufy-security-client/package.json | grep -q "melsawy93" && echo "✓ CONFIRMED: Using GitHub fork (melsawy93)" || echo "✗ WARNING: Not from expected GitHub fork") || true; \
