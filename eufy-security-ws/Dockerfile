@@ -9,7 +9,8 @@ RUN \
     && apk add --no-cache \
     nodejs \
     npm \
-    jq
+    jq \
+    git
 
 # Create package.json with override to use GitHub fork
 RUN echo '{ \
