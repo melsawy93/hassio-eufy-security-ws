@@ -12,7 +12,7 @@ RUN \
     jq \
     git
 
-# Create package.json first
+# Create package.json
 RUN echo '{ \
       "name": "eufy-security-ws-installer", \
       "version": "1.0.0", \
@@ -21,94 +21,32 @@ RUN echo '{ \
       } \
     }' > package.json
 
-# Install eufy-security-ws first (without the override)
-RUN npm install --force
+# Install eufy-security-ws first (without override)
+RUN npm cache clean --force && \
+    npm install --force --no-audit --prefer-offline=false
 
-# Clone eufy-security-client from GitHub fork directly into node_modules to get full source
-RUN rm -rf node_modules/eufy-security-client && \
-    git clone --depth 1 --branch add-c30-support https://github.com/melsawy93/eufy-security-client.git node_modules/eufy-security-client && \
-    cd node_modules/eufy-security-client && \
-    rm -rf .git
-
-# Build eufy-security-client if it's installed from GitHub (it needs to be built)
-RUN if [ -d "node_modules/eufy-security-client" ]; then \
-        echo "=== Building eufy-security-client from GitHub source ===" && \
-        cd node_modules/eufy-security-client && \
-        if [ -f "package.json" ]; then \
-            echo "Checking available files..." && \
-            ls -la | head -20 && \
-            echo "Installing dev dependencies..." && \
-            npm install --include=dev && \
-            echo "Checking for source files and tsconfig..." && \
-            if [ -d "src" ]; then \
-                echo "Source directory found, creating tsconfig files..." && \
-                if [ ! -f "tsconfig.json" ]; then \
-                    echo "Creating tsconfig.json..." && \
-                    echo '{ \
-                        "compileOnSave": true, \
-                        "compilerOptions": { \
-                            "noEmit": true, \
-                            "allowJs": true, \
-                            "checkJs": true, \
-                            "skipLibCheck": true, \
-                            "noEmitOnError": true, \
-                            "outDir": "./build/", \
-                            "removeComments": false, \
-                            "module": "Node16", \
-                            "moduleResolution": "Node16", \
-                            "resolveJsonModule": true, \
-                            "esModuleInterop": true, \
-                            "forceConsistentCasingInFileNames": true, \
-                            "jsx": "react", \
-                            "strict": true, \
-                            "target": "ES2022", \
-                            "lib": ["ES2023", "DOM"], \
-                            "sourceMap": true, \
-                            "inlineSourceMap": false \
-                        }, \
-                        "include": ["src/**/*.ts"], \
-                        "exclude": ["build/**", "node_modules/**"] \
-                    }' > tsconfig.json; \
-                fi && \
-                if [ ! -f "tsconfig.build.json" ]; then \
-                    echo "Creating tsconfig.build.json..." && \
-                    echo '{ \
-                        "extends": "./tsconfig.json", \
-                        "compilerOptions": { \
-                            "allowJs": false, \
-                            "checkJs": false, \
-                            "noEmit": false, \
-                            "declaration": true, \
-                            "outDir": "./build" \
-                        }, \
-                        "include": ["src/**/*.ts"], \
-                        "exclude": ["src/**/*.test.ts"] \
-                    }' > tsconfig.build.json; \
-                fi && \
-                echo "Building from source..." && \
-                npm run build; \
-            elif [ -f "build/index.js" ]; then \
-                echo "Pre-built package detected, build/index.js already exists"; \
-            else \
-                echo "ERROR: No source directory or build output found!" && \
-                ls -la && \
-                exit 1; \
-            fi && \
-            echo "Build completed successfully"; \
-        else \
-            echo "ERROR: package.json not found!" && exit 1; \
-        fi && \
-        cd /usr/src/app && \
-        echo "=== Verifying build output ===" && \
-        if [ -f "node_modules/eufy-security-client/build/index.js" ]; then \
-            echo "✓ Build output found at build/index.js"; \
-        else \
-            echo "✗ ERROR: Build output not found!" && \
-            echo "Listing build directory:" && \
-            ls -la node_modules/eufy-security-client/build/ 2>/dev/null || echo "Build directory does not exist" && \
-            exit 1; \
-        fi; \
-    fi
+# Clone and build eufy-security-client from GitHub fork
+RUN echo "=== Cloning eufy-security-client from GitHub fork ===" && \
+    cd /tmp && \
+    git clone --depth 1 --branch add-c30-support https://github.com/melsawy93/eufy-security-client.git && \
+    cd eufy-security-client && \
+    echo "=== Installing dependencies (using --force to bypass Node version check) ===" && \
+    npm install --include=dev --no-audit --force && \
+    echo "=== Building TypeScript ===" && \
+    npm run build && \
+    echo "=== Copying built package to node_modules ===" && \
+    rm -rf /usr/src/app/node_modules/eufy-security-client && \
+    cp -r /tmp/eufy-security-client /usr/src/app/node_modules/eufy-security-client && \
+    cd /usr/src/app && \
+    echo "=== Verifying build output ===" && \
+    if [ -f "node_modules/eufy-security-client/build/index.js" ]; then \
+        echo "✓ Build output found at build/index.js"; \
+    else \
+        echo "✗ ERROR: Build output not found!" && \
+        ls -la node_modules/eufy-security-client/build/ 2>/dev/null || echo "Build directory does not exist" && \
+        exit 1; \
+    fi && \
+    rm -rf /tmp/eufy-security-client
 
 # Verify that eufy-security-client is installed from GitHub fork
 RUN echo "=== Verifying eufy-security-client installation ===" && \

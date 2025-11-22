@@ -1,0 +1,169 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 3.11kB done
+#1 WARN: InvalidDefaultArgInFrom: Default value for ARG $BUILD_FROM results in empty or invalid base image name (line 2)
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/homeassistant/amd64-base:latest
+#2 DONE 0.2s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [ 1/10] FROM docker.io/homeassistant/amd64-base:latest@sha256:6a5e6070491aa237e66b747c2618b8977ee2c893fb67919777d33bcbd4a9a673
+#4 resolve docker.io/homeassistant/amd64-base:latest@sha256:6a5e6070491aa237e66b747c2618b8977ee2c893fb67919777d33bcbd4a9a673 0.0s done
+#4 DONE 0.0s
+
+#5 [ 2/10] WORKDIR /usr/src/app
+#5 CACHED
+
+#6 [internal] load build context
+#6 transferring context: 28B done
+#6 DONE 0.0s
+
+#7 [ 3/10] RUN     set -x     && apk add --no-cache     nodejs     npm     jq     git
+#7 0.170 + apk add --no-cache nodejs npm jq git
+#7 0.175 fetch https://dl-cdn.alpinelinux.org/alpine/v3.18/main/x86_64/APKINDEX.tar.gz
+#7 0.373 fetch https://dl-cdn.alpinelinux.org/alpine/v3.18/community/x86_64/APKINDEX.tar.gz
+#7 0.721 (1/10) Installing libexpat (2.7.0-r0)
+#7 0.732 (2/10) Installing pcre2 (10.42-r1)
+#7 0.754 (3/10) Installing git (2.40.4-r0)
+#7 0.852 (4/10) Installing c-ares (1.19.1-r1)
+#7 0.869 (5/10) Installing libgcc (12.2.1_git20220924-r10)
+#7 0.887 (6/10) Installing icu-data-en (73.2-r2)
+#7 0.928 Executing icu-data-en-73.2-r2.post-install
+#7 0.930 *
+#7 0.930 * If you need ICU with non-English locales and legacy charset support, install
+#7 0.930 * package icu-data-full.
+#7 0.930 *
+#7 0.930 (7/10) Installing libstdc++ (12.2.1_git20220924-r10)
+#7 0.961 (8/10) Installing icu-libs (73.2-r2)
+#7 1.028 (9/10) Installing nodejs (18.20.1-r0)
+#7 1.506 (10/10) Installing npm (9.6.6-r0)
+#7 1.690 Executing busybox-1.36.0-r9.trigger
+#7 1.695 OK: 98 MiB in 52 packages
+#7 DONE 1.9s
+
+#8 [ 4/10] RUN echo '{       "name": "eufy-security-ws-installer",       "version": "1.0.0",       "dependencies": {         "eufy-security-ws": "'1.9.3'"       }     }' > package.json
+#8 DONE 0.2s
+
+#9 [ 5/10] RUN npm cache clean --force &&     npm install --force --no-audit --prefer-offline=false
+#9 0.480 npm WARN using --force Recommended protections disabled.
+#9 0.777 npm WARN using --force Recommended protections disabled.
+#9 4.008 
+#9 4.008 added 134 packages in 3s
+#9 4.008 
+#9 4.008 37 packages are looking for funding
+#9 4.008   run `npm fund` for details
+#9 DONE 4.1s
+
+#10 [ 6/10] RUN echo "=== Cloning eufy-security-client from GitHub fork ===" &&     cd /tmp &&     git clone --depth 1 --branch add-c30-support https://github.com/melsawy93/eufy-security-client.git &&     cd eufy-security-client &&     echo "=== Installing dependencies (using --force to bypass Node version check) ===" &&     npm install --include=dev --no-audit --force &&     echo "=== Building TypeScript ===" &&     npm run build &&     echo "=== Copying built package to node_modules ===" &&     rm -rf /usr/src/app/node_modules/eufy-security-client &&     cp -r /tmp/eufy-security-client /usr/src/app/node_modules/eufy-security-client &&     cd /usr/src/app &&     echo "=== Verifying build output ===" &&     if [ -f "node_modules/eufy-security-client/build/index.js" ]; then         echo "Γ£ô Build output found at build/index.js";     else         echo "Γ£ù ERROR: Build output not found!" &&         ls -la node_modules/eufy-security-client/build/ 2>/dev/null || echo "Build directory does not exist" &&         exit 1;     fi &&     rm -rf /tmp/eufy-security-client
+#10 0.218 === Cloning eufy-security-client from GitHub fork ===
+#10 0.220 Cloning into 'eufy-security-client'...
+#10 0.668 === Installing dependencies (using --force to bypass Node version check) ===
+#10 0.884 npm WARN using --force Recommended protections disabled.
+#10 2.029 npm WARN deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+#10 2.249 npm WARN deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+#10 2.347 npm WARN deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+#10 2.677 npm WARN deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
+#10 2.701 npm WARN deprecated @humanwhocodes/config-array@0.11.14: Use @eslint/config-array instead
+#10 3.560 
+#10 3.560 added 257 packages in 3s
+#10 3.560 
+#10 3.560 70 packages are looking for funding
+#10 3.560   run `npm fund` for details
+#10 3.569 === Building TypeScript ===
+#10 3.802 
+#10 3.802 > eufy-security-client@3.2.0 build
+#10 3.802 > npm run build:ts
+#10 3.802 
+#10 4.032 
+#10 4.032 > eufy-security-client@3.2.0 build:ts
+#10 4.032 > tsc -p tsconfig.build.json && npm run copy-proto-build
+#10 4.032 
+#10 8.740 
+#10 8.740 > eufy-security-client@3.2.0 copy-proto-build
+#10 8.740 > npx copyfiles -u 1 "src/**/*.proto" "src/**/*.crt" build
+#10 8.740 
+#10 9.302 npm WARN exec The following package was not found and will be installed: copyfiles@2.4.1
+#10 10.36 npm WARN deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+#10 10.40 npm WARN deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+#10 10.63 === Copying built package to node_modules ===
+#10 11.02 === Verifying build output ===
+#10 11.02 Γ£ô Build output found at build/index.js
+#10 DONE 11.3s
+
+#11 [ 7/10] RUN echo "=== Verifying eufy-security-client installation ===" &&     cat package.json &&     echo "" &&     echo "=== Checking installed eufy-security-client package ===" &&     if [ -f "node_modules/eufy-security-client/package.json" ]; then         echo "Package found! Checking source..." &&         cat node_modules/eufy-security-client/package.json | grep -E '"name"|"version"|"repository"|"_resolved"' || true &&         echo "" &&         echo "=== Checking package structure ===" &&         ls -la node_modules/eufy-security-client/ | head -20 || true &&         echo "" &&         echo "=== Checking if it's from GitHub ===" &&         (cat node_modules/eufy-security-client/package.json | grep -q "melsawy93" && echo "Γ£ô CONFIRMED: Using GitHub fork (melsawy93)" || echo "Γ£ù WARNING: Not from expected GitHub fork") || true;     else         echo "Γ£ù ERROR: eufy-security-client package.json not found!";     fi &&     echo "" &&     echo "=== Checking package-lock.json ===" &&     (cat package-lock.json | grep -A 5 '"eufy-security-client"' | head -10 || echo "Could not find in package-lock.json")
+#11 0.233 === Verifying eufy-security-client installation ===
+#11 0.234 {       "name": "eufy-security-ws-installer",       "version": "1.0.0",       "dependencies": {         "eufy-security-ws": "1.9.3"       }     }
+#11 0.234 
+#11 0.234 === Checking installed eufy-security-client package ===
+#11 0.234 Package found! Checking source...
+#11 0.235   "name": "eufy-security-client",
+#11 0.235   "version": "3.2.0",
+#11 0.235     "name": "bropat",
+#11 0.235   "repository": {
+#11 0.235 
+#11 0.235 === Checking package structure ===
+#11 0.236 total 336
+#11 0.236 drwxr-xr-x    9 root     root          4096 Nov 22 16:16 .
+#11 0.236 drwxr-xr-x    1 root     root          4096 Nov 22 16:16 ..
+#11 0.236 -rw-r--r--    1 root     root          2095 Nov 22 16:16 .eslintrc.js
+#11 0.236 drwxr-xr-x    8 root     root          4096 Nov 22 16:16 .git
+#11 0.236 drwxr-xr-x    3 root     root          4096 Nov 22 16:16 .github
+#11 0.236 -rw-r--r--    1 root     root            39 Nov 22 16:16 .gitignore
+#11 0.236 -rw-r--r--    1 root     root           373 Nov 22 16:16 .npmignore
+#11 0.236 -rw-r--r--    1 root     root            18 Nov 22 16:16 .npmrc
+#11 0.236 drwxr-xr-x    2 root     root          4096 Nov 22 16:16 .vscode
+#11 0.236 -rw-r--r--    1 root     root          1096 Nov 22 16:16 LICENSE
+#11 0.236 -rw-r--r--    1 root     root         49532 Nov 22 16:16 README.md
+#11 0.236 -rw-r--r--    1 root     root          4207 Nov 22 16:16 TESTING_IN_HA.md
+#11 0.236 drwxr-xr-x    6 root     root          4096 Nov 22 16:16 build
+#11 0.236 drwxr-xr-x    3 root     root          4096 Nov 22 16:16 docs
+#11 0.236 drwxr-xr-x  214 root     root         12288 Nov 22 16:16 node_modules
+#11 0.236 -rw-r--r--    1 root     root        196902 Nov 22 16:16 package-lock.json
+#11 0.236 -rw-r--r--    1 root     root          2196 Nov 22 16:16 package.json
+#11 0.236 drwxr-xr-x    6 root     root          4096 Nov 22 16:16 src
+#11 0.236 -rw-r--r--    1 root     root           336 Nov 22 16:16 tsconfig.build.json
+#11 0.236 
+#11 0.236 === Checking if it's from GitHub ===
+#11 0.237 Γ£ù WARNING: Not from expected GitHub fork
+#11 0.237 
+#11 0.237 === Checking package-lock.json ===
+#11 0.239         "eufy-security-client": "^3.4.0",
+#11 0.240         "fs-extra": "^11.2.0",
+#11 0.240         "tslog": "^4.9.3",
+#11 0.240         "ws": "^8.18.3"
+#11 0.240       },
+#11 0.240       "bin": {
+#11 0.240         "eufy-security-client": "dist/bin/client.js",
+#11 0.240         "eufy-security-server": "dist/bin/server.js"
+#11 0.240       },
+#11 0.240       "engines": {
+#11 DONE 0.3s
+
+#12 [ 8/10] COPY run.sh /
+#12 DONE 0.1s
+
+#13 [ 9/10] RUN chmod a+x /run.sh
+#13 DONE 0.2s
+
+#14 [10/10] WORKDIR /data
+#14 DONE 0.1s
+
+#15 exporting to image
+#15 exporting layers
+#15 exporting layers 2.9s done
+#15 exporting manifest sha256:d55e6ad0122d818a3b3f011e4e44a4b3b305745616f5a0ee38c3efa581664a48 done
+#15 exporting config sha256:52ff6468bb7c6bb3ea62aaf9a2670d9f75badadd2d3ebbbaf62f66ac069801ae 0.0s done
+#15 exporting attestation manifest sha256:6154ee8dcbe4fd114238e1506ac3af1c40e489a0cb275e5e6e5929d81e7c0177 0.0s done
+#15 exporting manifest list sha256:5f1e6de1c2eae7b79cd089af4e720f250a77c2654c4d3e78e6ca246b4a4b1641 0.0s done
+#15 naming to docker.io/library/test-eufy-ws:latest done
+#15 unpacking to docker.io/library/test-eufy-ws:latest
+#15 unpacking to docker.io/library/test-eufy-ws:latest 2.3s done
+#15 DONE 5.3s
+
+ 1 warning found (use docker --debug to expand):
+ - InvalidDefaultArgInFrom: Default value for ARG $BUILD_FROM results in empty or invalid base image name (line 2)
