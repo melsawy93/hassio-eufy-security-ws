@@ -25,6 +25,24 @@ RUN echo '{ \
 
 RUN npm install --force
 
+# Verify that eufy-security-client is installed from GitHub fork
+RUN echo "=== Verifying eufy-security-client installation ===" && \
+    cat package.json && \
+    echo "" && \
+    echo "=== Checking installed eufy-security-client package ===" && \
+    if [ -f "node_modules/eufy-security-client/package.json" ]; then \
+        echo "Package found! Checking source..." && \
+        cat node_modules/eufy-security-client/package.json | grep -E '"name"|"version"|"repository"|"_resolved"' || true && \
+        echo "" && \
+        echo "=== Checking if it's from GitHub ===" && \
+        (cat node_modules/eufy-security-client/package.json | grep -q "melsawy93" && echo "✓ CONFIRMED: Using GitHub fork (melsawy93)" || echo "✗ WARNING: Not from expected GitHub fork") || true; \
+    else \
+        echo "✗ ERROR: eufy-security-client package.json not found!"; \
+    fi && \
+    echo "" && \
+    echo "=== Checking package-lock.json ===" && \
+    (cat package-lock.json | grep -A 5 '"eufy-security-client"' | head -10 || echo "Could not find in package-lock.json")
+
 COPY run.sh /
 RUN chmod a+x /run.sh
 WORKDIR /data

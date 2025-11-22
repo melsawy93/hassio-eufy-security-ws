@@ -105,6 +105,25 @@ check_version() {
 }
 
 if bashio::config.has_value 'username' && bashio::config.has_value 'password'; then
+    # Verify eufy-security-client source at runtime
+    echo "=== Runtime Verification: Checking eufy-security-client source ==="
+    if [ -f "/usr/src/app/node_modules/eufy-security-client/package.json" ]; then
+        CLIENT_VERSION=$(cat /usr/src/app/node_modules/eufy-security-client/package.json | grep '"version"' | head -1 | sed 's/.*"version": *"\([^"]*\)".*/\1/')
+        CLIENT_REPO=$(cat /usr/src/app/node_modules/eufy-security-client/package.json | grep -E '"repository"|"_resolved"' | grep -o 'melsawy93' || echo "")
+        if [ -n "$CLIENT_REPO" ]; then
+            echo "✓ VERIFIED: Using eufy-security-client from GitHub fork (melsawy93/add-c30-support)"
+            echo "  Version: $CLIENT_VERSION"
+        else
+            echo "⚠ WARNING: eufy-security-client may not be from expected GitHub fork"
+            echo "  Version: $CLIENT_VERSION"
+            echo "  Check package.json for repository info"
+        fi
+    else
+        echo "✗ ERROR: Could not find eufy-security-client package.json"
+    fi
+    echo "================================================================"
+    echo ""
+    
     echo "$JSON_STRING" > $CONFIG_PATH
     exec /usr/bin/node --security-revert=CVE-2023-46809 $IPV4_FIRST_NODE_OPTION /usr/src/app/node_modules/eufy-security-ws/dist/bin/server.js --host 0.0.0.0 --config $CONFIG_PATH $DEBUG_OPTION $PORT_OPTION
 else
