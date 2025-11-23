@@ -28,7 +28,7 @@ RUN npm cache clean --force && \
 # Clone and build eufy-security-client from GitHub fork
 RUN echo "=== Cloning eufy-security-client from GitHub fork (cache clear and build  ) ===" && \
     cd /tmp && \
-    git clone --depth 1 --branch add-c30-support https://github.com/melsawy93/eufy-security-client.git && \
+    git clone --depth 1 --branch add-c30-e330-support https://github.com/melsawy93/eufy-security-client.git && \
     cd eufy-security-client && \
     echo "=== Installing dependencies (using --force to bypass Node version check) ===" && \
     npm install --include=dev --no-audit --force && \

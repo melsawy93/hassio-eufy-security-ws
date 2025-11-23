@@ -118,7 +118,7 @@ if bashio::config.has_value 'username' && bashio::config.has_value 'password'; t
         echo "  Resolved: $CLIENT_RESOLVED"
         
         if [ -n "$CLIENT_REPO" ]; then
-            echo "✓ VERIFIED: Using eufy-security-client from GitHub fork (melsawy93/add-c30-support)"
+            echo "✓ VERIFIED: Using eufy-security-client from GitHub fork (melsawy93/add-c30-e330-support)"
         else
             echo "⚠ WARNING: eufy-security-client may not be from expected GitHub fork"
             echo "  Showing package.json contents:"
