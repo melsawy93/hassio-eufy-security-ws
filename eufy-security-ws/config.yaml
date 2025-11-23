@@ -1,6 +1,6 @@
 name: Eufy Security WS (C30-E330 Dev)
 description: Allows you to control Eufy security devices over websocket by connecting to the Eufy cloud servers and local/remote stations (Dev version with C30/E330 support)
-version: 1.0.5
+version: 1.0.6
 slug: "eufy_security_ws_c30_e330_dev"
 url: https://github.com/melsawy93/eufy-security-client/tree/add-c30-e330-support
 init: false
